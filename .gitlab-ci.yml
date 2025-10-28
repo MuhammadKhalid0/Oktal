@@ -4,7 +4,7 @@ stages:
 
 
 testsuite:
-  image: i10git.cs.fau.de:5005/teaching/advpt-exercise-ws2526/build:ci-env
+  image: i10git.cs.fau.de:5005/advpt-student/ci-registry/build:ci-env
   stage: test
   variables:
     CC: clang-19
@@ -20,7 +20,7 @@ testsuite:
 
 
 clang-tidy:
-  image: i10git.cs.fau.de:5005/teaching/advpt-exercise-ws2526/build:ci-env
+  image: i10git.cs.fau.de:5005/advpt-student/ci-registry/build:ci-env
   stage: code-quality
   needs: []
   variables:
