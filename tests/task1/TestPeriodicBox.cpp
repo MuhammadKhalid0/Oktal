@@ -28,7 +28,7 @@ void testMapFullyPeriodic() {
   using namespace oktal;
 
   {
-    PeriodicBox pbox{{0., 0., 0.}, {1., 1., 1.}, {true, true, true}};
+    PeriodicBox const pbox{{0., 0., 0.}, {1., 1., 1.}, {true, true, true}};
 
     advpt::testing::assert_equal(pbox.mapIntoBox({0.2, 0.35, 0.7}),
                                  {0.2, 0.35, 0.7});
@@ -41,7 +41,7 @@ void testMapFullyPeriodic() {
   }
 
   {
-    PeriodicBox pbox{{1., 1.5, 2.1}, {1.5, 2.7, 3.1}, {true, true, true}};
+    PeriodicBox const pbox{{1., 1.5, 2.1}, {1.5, 2.7, 3.1}, {true, true, true}};
 
     advpt::testing::assert_equal(pbox.mapIntoBox({1.3, 1.75, 2.25}),
                                  {1.3, 1.75, 2.25});
@@ -56,7 +56,7 @@ void testMapPartlyPeriodic() {
   using namespace oktal;
 
   {
-    PeriodicBox pbox{{0., 0., 0.}, {1., 1., 1.}, {true, false, true}};
+    PeriodicBox const pbox{{0., 0., 0.}, {1., 1., 1.}, {true, false, true}};
 
     advpt::testing::assert_equal(pbox.mapIntoBox({0.2, 0.35, 0.7}),
                                  {0.2, 0.35, 0.7});
@@ -69,7 +69,8 @@ void testMapPartlyPeriodic() {
   }
 
   {
-    PeriodicBox pbox{{-1., 0.5, -0.25}, {2., 2., 0.}, {true, true, false}};
+    PeriodicBox const pbox{
+        {-1., 0.5, -0.25}, {2., 2., 0.}, {true, true, false}};
 
     advpt::testing::assert_equal(pbox.mapIntoBox({-1., 0.7, -0.2}),
                                  {-1., 0.7, -0.2});
@@ -84,7 +85,7 @@ void testPeriodicDistance() {
   using namespace oktal;
 
   {
-    PeriodicBox pbox{{0., 0., 0.}, {1., 1., 1.}, {true, true, true}};
+    PeriodicBox const pbox{{0., 0., 0.}, {1., 1., 1.}, {true, true, true}};
 
     advpt::testing::with_tolerance{1e-15, 0.}.assert_close(
         pbox.sqrDistance({0., 0., 0.}, {0.2, 0.3, 0.4}),
@@ -104,7 +105,8 @@ void testPeriodicDistance() {
   }
 
   {
-    PeriodicBox pbox{{1., -1.5, -0.5}, {2., -0.5, 1.5}, {true, true, true}};
+    PeriodicBox const pbox{
+        {1., -1.5, -0.5}, {2., -0.5, 1.5}, {true, true, true}};
 
     advpt::testing::with_tolerance{1e-15, 0.}.assert_close(
         pbox.sqrDistance({1., -1.5, -0.5}, {1.2, -1.2, -0.1}),
