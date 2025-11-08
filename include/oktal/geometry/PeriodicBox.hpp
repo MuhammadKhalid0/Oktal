@@ -6,7 +6,6 @@
 
 namespace oktal {
 
-
 /**
  * @brief Partially periodic cuboid volume exposing periodic point mapping and
  * distance computations.
@@ -22,7 +21,8 @@ public:
    */
   PeriodicBox(std::array<double, 3> minCorner, std::array<double, 3> maxCorner,
               std::array<bool, 3> periodicity)
-      : minCorner_{minCorner}, maxCorner_{maxCorner} {}
+      : minCorner_{minCorner}, maxCorner_{maxCorner},
+        periodicity_{periodicity} {}
 
   /**
    * @brief The box's minimum (left-front-bottom) corner
@@ -48,17 +48,17 @@ public:
   /**
    * @brief Compute the square euclidean distance of two points with respect to
    * the periodic box
-   * 
+   *
    * @warning Results are undefined for points outside of the box.
    * Transform them into the box using `mapIntoBox` first.
    */
   double sqrDistance(std::array<double, 3> pointA,
-                     std::array<double, 3> pointB);
+                     std::array<double, 3> pointB) const;
 
   /**
    * @brief Compute the euclidean distance of two points with respect to the
    * periodic box
-   * 
+   *
    * @warning Results are undefined for points outside of the box.
    * Transform them into the box using `mapIntoBox` first.
    */
@@ -72,6 +72,5 @@ private:
   std::array<double, 3> maxCorner_;
   std::array<bool, 3> periodicity_;
 };
-
 
 } // namespace oktal

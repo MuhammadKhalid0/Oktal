@@ -4,7 +4,6 @@
 
 namespace oktal {
 
-
 std::array<double, 3>
 PeriodicBox::mapIntoBox(std::array<double, 3> point) const {
 
@@ -23,29 +22,26 @@ PeriodicBox::mapIntoBox(std::array<double, 3> point) const {
 }
 
 double PeriodicBox::sqrDistance(std::array<double, 3> pointA,
-                                std::array<double, 3> pointB) {
+                                std::array<double, 3> pointB) const {
   auto periodicDistance = [&, this](size_t coord) {
-    if(!periodicity_[coord]){
+    if (!periodicity_[coord]) {
       return pointA[coord] - pointB[coord];
     }
 
-    double lower{ minCorner_[coord] };
-    double upper{ maxCorner_[coord] };
-    double p0{ pointA[coord] };
-    double p1{ pointB[coord] };
+    double lower{minCorner_[coord]};
+    double upper{maxCorner_[coord]};
+    double p0{pointA[coord]};
+    double p1{pointB[coord]};
 
-    return std::min({std::abs(p0 - p1),
-                     std::abs(p0 - (lower - (upper - p1))),
+    return std::min({std::abs(p0 - p1), std::abs(p0 - (lower - (upper - p1))),
                      std::abs(p0 - (upper + (p1 - lower)))});
   };
 
-  double dx{ periodicDistance(0) };
-  double dy{ periodicDistance(1) };
-  double dz{ periodicDistance(2) };
+  double dx{periodicDistance(0)};
+  double dy{periodicDistance(1)};
+  double dz{periodicDistance(2)};
 
   return dx * dx + dy * dy + dz * dz;
-
 }
-
 
 } // namespace oktal
