@@ -8,13 +8,12 @@
 #include <ranges>
 #include <type_traits>
 
-#define TEST_BASIC_INTERFACE false
-#define TEST_PATH_CONVERSION false
-#define TEST_POSITION_QUERIES false
-#define TEST_TRAVERSAL false
-#define TEST_PARTIAL_ORDER false
-#define TEST_GRID_COORDINATES false
-
+#define TEST_BASIC_INTERFACE true
+#define TEST_PATH_CONVERSION true
+#define TEST_POSITION_QUERIES true
+#define TEST_TRAVERSAL true
+#define TEST_PARTIAL_ORDER true
+#define TEST_GRID_COORDINATES true
 
 namespace {
 
