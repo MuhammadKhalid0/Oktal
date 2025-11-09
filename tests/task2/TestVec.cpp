@@ -16,17 +16,16 @@
  * appropriate macro to `true`:
  */
 
-#define TEST_BASIC_INTERFACE false
-#define TEST_CONSTRUCTORS false
-#define TEST_ELEMENT_ACCESS false
-#define TEST_EQUALITY false
-#define TEST_RANGE false
-#define TEST_VECTOR_OPS false
-#define TEST_AUGMENTED_ASSIGNMENTS false
-#define TEST_MAGNITUDE false
-#define TEST_CONVERTING_CTOR false
-#define TEST_TYPE_ALIASES false
-
+#define TEST_BASIC_INTERFACE true
+#define TEST_CONSTRUCTORS true
+#define TEST_ELEMENT_ACCESS true
+#define TEST_EQUALITY true
+#define TEST_RANGE true
+#define TEST_VECTOR_OPS true
+#define TEST_AUGMENTED_ASSIGNMENTS true
+#define TEST_MAGNITUDE true
+#define TEST_CONVERTING_CTOR true
+#define TEST_TYPE_ALIASES true
 
 namespace {
 
