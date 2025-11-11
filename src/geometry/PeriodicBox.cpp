@@ -4,7 +4,6 @@
 
 namespace oktal {
 
-
 std::array<double, 3>
 PeriodicBox::mapIntoBox(std::array<double, 3> point) const {
 
@@ -16,36 +15,36 @@ PeriodicBox::mapIntoBox(std::array<double, 3> point) const {
   };
 
   return {
-      mapToInterval(point[0], minCorner_[0], maxCorner_[0]),
-      mapToInterval(point[1], minCorner_[1], maxCorner_[1]),
-      mapToInterval(point[2], minCorner_[2], maxCorner_[2]),
+      periodicity_[0] ? mapToInterval(point[0], minCorner_[0], maxCorner_[0])
+                      : point[0],
+      periodicity_[1] ? mapToInterval(point[1], minCorner_[1], maxCorner_[1])
+                      : point[1],
+      periodicity_[2] ? mapToInterval(point[2], minCorner_[2], maxCorner_[2])
+                      : point[2],
   };
 }
 
 double PeriodicBox::sqrDistance(std::array<double, 3> pointA,
-                                std::array<double, 3> pointB) {
+                                std::array<double, 3> pointB) const {
   auto periodicDistance = [&, this](size_t coord) {
-    if(!periodicity_[coord]){
-      return pointA[coord] - pointB[coord];
+    if (!periodicity_.at(coord)) {
+      return pointA.at(coord) - pointB.at(coord);
     }
 
-    double lower{ minCorner_[coord] };
-    double upper{ maxCorner_[coord] };
-    double p0{ pointA[coord] };
-    double p1{ pointB[coord] };
+    double const lower{minCorner_.at(coord)};
+    double const upper{maxCorner_.at(coord)};
+    double const p0{pointA.at(coord)};
+    double const p1{pointB.at(coord)};
 
-    return std::min({std::abs(p0 - p1),
-                     std::abs(p0 - (lower - (upper - p1))),
+    return std::min({std::abs(p0 - p1), std::abs(p0 - (lower - (upper - p1))),
                      std::abs(p0 - (upper + (p1 - lower)))});
   };
 
-  double dx{ periodicDistance(0) };
-  double dy{ periodicDistance(1) };
-  double dz{ periodicDistance(2) };
+  double const dx{periodicDistance(0)};
+  double const dy{periodicDistance(1)};
+  double const dz{periodicDistance(2)};
 
   return dx * dx + dy * dy + dz * dz;
-
 }
-
 
 } // namespace oktal
