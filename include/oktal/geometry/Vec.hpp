@@ -29,115 +29,56 @@ public:
     }
   };
 
-  template <typename S, std::size_t S_DIM>
-  Vec(Vec<S, S_DIM> const &v) noexcept
+  template <typename S>
+  constexpr Vec(Vec<S, DIM> const &other) noexcept
     requires std::convertible_to<S, T>
   {
-    std::copy_n(v.begin(), DIM, v_.begin());
+    for (size_t i = 0; i < DIM; ++i)
+    {
+      v_[i] = static_cast<T>(other[i]);
+    }
   }
 
   [[nodiscard]] constexpr std::size_t size() const noexcept { return DIM; }
 
-  constexpr T *data() noexcept { return v_.data(); }
+  [[nodiscard]] constexpr T *data() noexcept { return v_.data(); }
 
   [[nodiscard]] constexpr const T *data() const noexcept { return v_.data(); }
 
-  T &operator[](std::size_t index) { return v_.at(index); };
+  [[nodiscard]] T &operator[](std::size_t index) { return v_.at(index); };
 
-  T const &operator[](std::size_t index) const { return v_.at(index); };
+  [[nodiscard]] T const &operator[](std::size_t index) const { return v_.at(index); };
 
-  bool operator==(Vec const &rhs) const {
-    if (size() != rhs.size()) {
-      return false;
-    }
-    for (std::size_t ix = 0; ix < size(); ++ix) {
-      if (v_.at(ix) != rhs[ix]) {
-        return false;
-      }
-    }
-    return true;
-  }
-  bool operator!=(Vec const &rhs) const {
-    if (size() == rhs.size()) {
-      for (std::size_t ix = 0; ix < size(); ++ix) {
-        if (v_.at(ix) != rhs[ix]) {
-          return true;
-        }
-      }
-      return false;
-    }
-    return true;
-  }
+  [[nodiscard]] constexpr T *begin() noexcept { return data(); }
+  [[nodiscard]] constexpr const T *begin() const noexcept { return data(); }
 
-  T *begin() { return v_.begin(); }
-  [[nodiscard]] const T *begin() const { return v_.begin(); }
+  [[nodiscard]] constexpr T *end() { return data() + DIM; }
+  [[nodiscard]] constexpr const T *end() const { return data() + DIM; }
 
-  T *end() { return v_.end(); }
-  [[nodiscard]] const T *end() const { return v_.end(); }
-
-  Vec<T, DIM> operator-() const {
-    Vec<T, DIM> v3;
-
-    for (std::size_t ix = 0; ix < size(); ++ix) {
-      v3[ix] = -v_.at(ix);
-    }
-    return v3;
-  }
-
-  Vec<T, DIM> operator+(Vec const &v2) const {
-    Vec<T, DIM> v3;
-    if (v2.size() != size()) {
-      return v3;
-    }
-    for (std::size_t ix = 0; ix < size(); ++ix) {
-      v3[ix] = v_.at(ix) + v2[ix];
-    }
-    return v3;
-  }
-
-  Vec<T, DIM> &operator+=(Vec const &v2) {
-    if (v2.size() != size()) {
-      return *this;
-    }
-    std::size_t ix = 0;
-    for (auto &e : v_) {
-      e += v2[ix];
-      ++ix;
-    }
-    return *this;
-  }
-
-  Vec<T, DIM> operator-(Vec const &v2) const
-    requires(!std::is_unsigned_v<T>)
+  constexpr Vec<T, DIM> operator-() const
+  requires (!std::is_unsigned_v<T>)
   {
-    Vec<T, DIM> v3;
-    if (v2.size() != size()) {
-      return v3;
-    }
+    Vec<T, DIM> result{};
     for (std::size_t ix = 0; ix < size(); ++ix) {
-      v3[ix] = v_.at(ix) - v2[ix];
+      result[ix] = -v_[ix];
     }
-    return v3;
+    return result;
   }
 
-  Vec<T, DIM> &operator-=(Vec const &v2) {
-    if (v2.size() != size()) {
-      return *this;
-    }
-    std::size_t ix = 0;
-    for (auto &e : v_) {
-      e -= v2[ix];
-      ++ix;
+  Vec<T, DIM> &operator+=(Vec const &other) {
+    for (size_t i = 0; i < DIM; ++i)
+    {
+      v_[i] += other[i];
     }
     return *this;
   }
 
-  Vec<T, DIM> operator*(T const &alpha) const {
-    Vec<T, DIM> v3;
-    for (std::size_t ix = 0; ix < size(); ++ix) {
-      v3[ix] = v_.at(ix) * alpha;
+  Vec<T, DIM> &operator-=(Vec const &other) {
+    for (size_t i = 0; i < DIM; ++i)
+    {
+      v_[i] -= other[i];
     }
-    return v3;
+    return *this;
   }
 
   Vec<T, DIM> &operator*=(T const &alpha) {
@@ -147,14 +88,6 @@ public:
     return *this;
   }
 
-  Vec<T, DIM> operator/(T const &alpha) const {
-    Vec<T, DIM> v3;
-    for (std::size_t ix = 0; ix < size(); ++ix) {
-      v3[ix] = v_.at(ix) / alpha;
-    }
-    return v3;
-  }
-
   Vec<T, DIM> &operator/=(T const &alpha) {
     for (auto &e : v_) {
       e /= alpha;
@@ -162,13 +95,14 @@ public:
     return *this;
   }
 
-  [[nodiscard]] T sqrMagnitude() const {
+  [[nodiscard]] constexpr T sqrMagnitude() const noexcept {
     T res = 0;
     for (auto elem : v_) {
       res += elem * elem;
     }
     return res;
   }
+
   [[nodiscard]] T magnitude() const
     requires std::is_floating_point_v<T>
   {
@@ -177,37 +111,61 @@ public:
 
 private:
   std::array<T, DIM> v_;
+  
+  // symmetric operators Lec4p27
+  // friend Lec4p39
+  [[nodiscard]] friend constexpr bool operator==(Vec const& lhs, Vec const& rhs) noexcept {
+    return lhs.v_ == rhs.v_;
+  }
+
+  [[nodiscard]] friend constexpr bool operator!=(Vec const& lhs, Vec const& rhs) noexcept {
+    return !(lhs == rhs);
+  }
+
+  [[nodiscard]] friend constexpr Vec operator+(Vec const& lhs, Vec const& rhs) noexcept {
+    // list initialization Lec6p9
+    Vec result{};
+    for (std::size_t ix = 0; ix < lhs.size(); ++ix) {
+      result[ix] = lhs[ix] + rhs[ix];
+    }
+    return result;
+  }
+
+  // if T is unsigned values might overflow. Maybe useful for periodics later on?
+  [[nodiscard]] friend constexpr Vec operator-(Vec const& lhs, Vec const &rhs) noexcept {
+    Vec result{};
+    for (std::size_t ix = 0; ix < lhs.size(); ++ix) {
+      result[ix] = lhs[ix] - rhs[ix];
+    }
+    return result;
+  }
+
 };
 
 template <typename Scalar, typename T, std::size_t DIM>
   requires std::convertible_to<Scalar, T>
-inline Vec<T, DIM> operator*(Scalar const &alpha, Vec<T, DIM> const &v) {
-  Vec<T, DIM> v3;
-  for (std::size_t ix = 0; ix < v.size(); ++ix) {
-    v3[ix] = v[ix] * alpha;
+[[nodiscard]] constexpr Vec<T, DIM> operator*(Vec<T, DIM> const& v, Scalar const& alpha) noexcept {
+  Vec<T, DIM> result{};
+  for (std::size_t ix = 0; ix < DIM; ++ix) {
+    result[ix] = v[ix] * alpha;
   }
-  return v3;
+  return result;
 }
 
 template <typename Scalar, typename T, std::size_t DIM>
   requires std::convertible_to<Scalar, T>
-inline Vec<T, DIM> operator*=(Scalar const &alpha, Vec<T, DIM> const &v) {
-  return alpha * v;
+[[nodiscard]] constexpr Vec<T, DIM> operator*(Scalar const& alpha, Vec<T, DIM> const& v) noexcept {
+  return v * alpha;
 }
 
 template <typename Scalar, typename T, std::size_t DIM>
   requires std::convertible_to<Scalar, T>
-inline Vec<T, DIM> operator/(Scalar const &alpha, Vec<T, DIM> const &v) {
-  Vec<T, DIM> v3;
-  for (std::size_t ix = 0; ix < v.size(); ++ix) {
-    v3[ix] = alpha / v[ix];
-  }
-  return v3;
-}
-template <typename Scalar, typename T, std::size_t DIM>
-  requires std::convertible_to<Scalar, T>
-inline Vec<T, DIM> operator/=(Scalar const &alpha, Vec<T, DIM> const &v) {
-  return alpha / v;
+[[nodiscard]] constexpr Vec<T, DIM> operator/(Vec<T, DIM> const &v, Scalar const &alpha) {
+  Vec<T, DIM> result{}; 
+  for (std::size_t ix = 0; ix < DIM; ++ix) { 
+    result[ix] = v[ix] / alpha; 
+  } 
+  return result; 
 }
 
 using Vec3F = Vec<float, 3>;
