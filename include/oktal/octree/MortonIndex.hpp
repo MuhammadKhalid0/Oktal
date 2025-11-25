@@ -82,8 +82,8 @@ public:
   bool operator==(MortonIndex const &index) const;
   bool operator!=(MortonIndex const &index) const;
 
-  bool operator<(MortonIndex const &index) const;
-  bool operator>(MortonIndex const &index) const;
+  bool operator<(MortonIndex const &possible_ancestor) const;
+  bool operator>(MortonIndex const &possible_descendant) const;
 
   bool operator<=(MortonIndex const &index) const;
   bool operator>=(MortonIndex const &index) const;
@@ -100,30 +100,31 @@ private:
   morton_bits_t bits_{};
 
   [[nodiscard]] static std::vector<morton_bits_t> gridCoordsToPath(size_t level, Vec<size_t, 3> const &values){
-    if (level == 0)
-    return {};
+    if (level == 0) {
+      return {};
+    }
 
     const morton_bits_t max_coord = morton_bits_t{1} << level; // 2 to the power of level
     if (values[0] >= max_coord || values[1] >= max_coord || values[2] >= max_coord) {
         throw std::out_of_range("grid coordinate does not match level");
     }
 
-    std::vector<morton_bits_t> path(level);
+    std::vector<morton_bits_t> path;
     auto x = static_cast<morton_bits_t>(values[0]);
     auto y = static_cast<morton_bits_t>(values[1]);
     auto z = static_cast<morton_bits_t>(values[2]);
 
     for (size_t i = 0; i < level; i++) {
-      morton_bits_t z_bit = z & 1;
+      morton_bits_t const z_bit = z & 1;
       z = z >> 1;
 
-      morton_bits_t y_bit = y & 1;
+      morton_bits_t const y_bit = y & 1;
       y = y >> 1;
 
-      morton_bits_t x_bit = x & 1;
+      morton_bits_t const x_bit = x & 1;
       x = x >> 1;
 
-      morton_bits_t res = (z_bit << 2) + (y_bit << 1) + x_bit;
+      morton_bits_t const res = (z_bit << 2) + (y_bit << 1) + x_bit;
       path.push_back(res);
     }
     std::ranges::reverse(path.begin(), path.end());

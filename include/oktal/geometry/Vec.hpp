@@ -35,7 +35,7 @@ public:
   {
     for (size_t i = 0; i < DIM; ++i)
     {
-      v_[i] = static_cast<T>(other[i]);
+      v_.at(i) = static_cast<T>(other[i]);
     }
   }
 
@@ -52,15 +52,15 @@ public:
   [[nodiscard]] constexpr T *begin() noexcept { return data(); }
   [[nodiscard]] constexpr const T *begin() const noexcept { return data(); }
 
-  [[nodiscard]] constexpr T *end() { return data() + DIM; }
-  [[nodiscard]] constexpr const T *end() const { return data() + DIM; }
+  [[nodiscard]] constexpr T *end() { return v_.end(); }
+  [[nodiscard]] constexpr const T *end() const { return v_.end(); }
 
   constexpr Vec<T, DIM> operator-() const
   requires (!std::is_unsigned_v<T>)
   {
     Vec<T, DIM> result{};
-    for (std::size_t ix = 0; ix < size(); ++ix) {
-      result[ix] = -v_[ix];
+    for (std::size_t i = 0; i < size(); ++i) {
+      result[i] = -v_.at(i);
     }
     return result;
   }
@@ -68,7 +68,7 @@ public:
   Vec<T, DIM> &operator+=(Vec const &other) {
     for (size_t i = 0; i < DIM; ++i)
     {
-      v_[i] += other[i];
+      v_.at(i) += other[i];
     }
     return *this;
   }
@@ -76,7 +76,7 @@ public:
   Vec<T, DIM> &operator-=(Vec const &other) {
     for (size_t i = 0; i < DIM; ++i)
     {
-      v_[i] -= other[i];
+      v_.at(i) -= other[i];
     }
     return *this;
   }
