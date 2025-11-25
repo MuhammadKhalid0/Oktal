@@ -6,20 +6,15 @@ using namespace oktal;
   morton_bits_t bits = bits_;
   while (bits > 1) {
     v.push_back(bits & 0b111);
-    bits = bits >> 3;
+    bits = bits >> BITS_PER_LEVEL_;
   }
   std::ranges::reverse(v.begin(), v.end());
   return v;
 }
 
 [[nodiscard]] std::size_t MortonIndex::level() const {
-  auto bits = bits_;
-  std::size_t level = 0;
-  while (bits > 1) {
-    bits = bits >> 3;
-    ++level;
-  }
-  return level;
+  auto zeroes = static_cast<std::size_t>(std::countl_zero(bits_));
+  return MAX_DEPTH - zeroes / BITS_PER_LEVEL_;
 }
 
 [[nodiscard]] bool MortonIndex::isRoot() const { return bits_ == 1; }
@@ -64,35 +59,36 @@ bool MortonIndex::operator==(MortonIndex const &index) const {
 }
 
 bool MortonIndex::operator!=(MortonIndex const &index) const {
-  return bits_ != index.getBits();
+  return !(*this==index);
 }
 
-bool MortonIndex::operator<(MortonIndex const &index) const {
-  if (index.level() >= level()) {
-    return false;
+bool MortonIndex::operator<(MortonIndex const &possible_ancestor) const { 
+  //readable
+  auto ancestor_level = possible_ancestor.level(); 
+  if (ancestor_level >= level()) { 
+    return false; 
+  } 
+  if (possible_ancestor.isRoot()) { 
+    return true; 
+  } 
+  auto possible_descendant = *this; 
+  while(possible_descendant.level() > ancestor_level) { 
+    possible_descendant = possible_descendant.parent();
   }
-  if (index.isRoot()) {
-    return true;
-  }
-  auto bits = index.getBits();
-  while (MortonIndex(bits).level() < level()) {
-    bits = bits << 3;
-  }
-  return (getBits() & bits) == bits;
+  return possible_descendant == possible_ancestor;
 }
 
-bool MortonIndex::operator>(MortonIndex const &index) const {
-  if (index.level() <= level()) {
+bool MortonIndex::operator>(MortonIndex const &possible_descendant) const {
+  // performant
+  auto bit_delta = std::countl_zero(bits_) - std::countl_zero(possible_descendant.bits_);
+  if (bit_delta <= 0) {
     return false;
   }
   if (isRoot()) {
     return true;
   }
-  auto bits = getBits();
-  while (MortonIndex(bits).level() < index.level()) {
-    bits = bits << 3;
-  }
-  return (index.getBits() & bits) == bits;
+  auto desc_bits = possible_descendant.bits_>> bit_delta;
+  return desc_bits == bits_;
 }
 
 bool MortonIndex::operator<=(MortonIndex const &index) const {
@@ -106,21 +102,6 @@ bool MortonIndex::operator>=(MortonIndex const &index) const {
   if (isRoot()) {
     return {};
   };
-
-  morton_bits_t x = 0;
-  morton_bits_t y = 0;
-  morton_bits_t z = 0;
   auto path = getPath();
-  for (auto e : path) {
-
-    x = x << 1;
-    x += e & 0b1;
-
-    y = y << 1;
-    y += (e & 0b10) >> 1;
-
-    z = z << 1;
-    z += (e & 0b100) >> 2;
-  }
-  return {x, y, z};
+  return pathToGridCoords(path);
 }

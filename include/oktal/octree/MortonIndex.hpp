@@ -17,7 +17,20 @@ public:
   MortonIndex() : bits_{1} {}
   MortonIndex(morton_bits_t bits) : bits_{bits} {}
 
-  static constexpr unsigned int MAX_DEPTH = (sizeof(morton_bits_t) * 8 - 1) / 3;
+private:
+  static constexpr std::size_t BITS_PER_LEVEL_ = 3;
+
+  static morton_bits_t append_decision(morton_bits_t bits, morton_bits_t const decision) { 
+    if (decision >= 8) { 
+      throw std::invalid_argument("Path contains invalid choice"); 
+    } 
+    bits = bits << BITS_PER_LEVEL_;
+    bits |= decision;
+    return bits;
+  }
+  
+public:
+  static constexpr unsigned int MAX_DEPTH = (sizeof(morton_bits_t) * 8 - 1) / BITS_PER_LEVEL_;
 
   [[nodiscard]] morton_bits_t getBits() const { return bits_; }
 
@@ -27,11 +40,7 @@ public:
     }
     morton_bits_t bits = 1;
     for (auto b : v) {
-      if (b >= 8) {
-        throw std::invalid_argument("Path contains invalid choice");
-      }
-      bits = bits << 3;
-      bits |= b;
+      bits = append_decision(bits, b);
     }
     return {bits};
   }
@@ -44,12 +53,8 @@ public:
     }
     morton_bits_t bits = 1;
     for (auto b : v) {
-      if (b >= 8) {
-        throw std::invalid_argument("Path contains invalid choice");
-      }
-      bits = bits << 3;
-      morton_bits_t bit = b;
-      bits |= bit;
+      auto const bit = static_cast<morton_bits_t>(b);
+      bits = append_decision(bits, bit);
     }
     return {bits};
   }
@@ -85,37 +90,64 @@ public:
 
   [[nodiscard]] Vec<size_t, 3> gridCoordinates() const;
 
-  static MortonIndex fromGridCoordinates(size_t level,
+  [[nodiscard]] static MortonIndex fromGridCoordinates(size_t level,
                                          Vec<size_t, 3> const &values) {
-
-    if (level > 0) {
-      std::vector<morton_bits_t> v;
-      auto x = values[0];
-      auto y = values[1];
-      auto z = values[2];
-
-      for (size_t i = 0; i < level; i++) {
-        auto a = z & 1;
-        z = z >> 1;
-
-        auto b = y & 1;
-        y = y >> 1;
-
-        auto c = x & 1;
-        x = x >> 1;
-
-        auto res = (a << 2) + (b << 1) + c;
-        v.push_back(res);
-      }
-      std::ranges::reverse(v.begin(), v.end());
-      return MortonIndex::fromPath(v);
-    }
-
-    return MortonIndex{};
+    auto path = gridCoordsToPath(level, values);
+    return MortonIndex::fromPath(path);
   }
 
 private:
   morton_bits_t bits_{};
+
+  [[nodiscard]] static std::vector<morton_bits_t> gridCoordsToPath(size_t level, Vec<size_t, 3> const &values){
+    if (level == 0)
+    return {};
+
+    const morton_bits_t max_coord = morton_bits_t{1} << level; // 2 to the power of level
+    if (values[0] >= max_coord || values[1] >= max_coord || values[2] >= max_coord) {
+        throw std::out_of_range("grid coordinate does not match level");
+    }
+
+    std::vector<morton_bits_t> path(level);
+    auto x = static_cast<morton_bits_t>(values[0]);
+    auto y = static_cast<morton_bits_t>(values[1]);
+    auto z = static_cast<morton_bits_t>(values[2]);
+
+    for (size_t i = 0; i < level; i++) {
+      morton_bits_t z_bit = z & 1;
+      z = z >> 1;
+
+      morton_bits_t y_bit = y & 1;
+      y = y >> 1;
+
+      morton_bits_t x_bit = x & 1;
+      x = x >> 1;
+
+      morton_bits_t res = (z_bit << 2) + (y_bit << 1) + x_bit;
+      path.push_back(res);
+    }
+    std::ranges::reverse(path.begin(), path.end());
+    return path;
+  }
+
+  [[nodiscard]] static Vec<size_t, 3> pathToGridCoords(std::vector<oktal::morton_bits_t>& path) {
+  morton_bits_t x = 0;
+  morton_bits_t y = 0;
+  morton_bits_t z = 0;
+  for (auto e : path) {
+
+    x = x << 1;
+    x += e & 0b1;
+
+    y = y << 1;
+    y += (e & 0b10) >> 1;
+
+    z = z << 1;
+    z += (e & 0b100) >> 2;
+  }
+  return {x, y, z};
+}
+
 };
 
 } // namespace oktal

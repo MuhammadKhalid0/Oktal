@@ -112,8 +112,6 @@ public:
 private:
   std::array<T, DIM> v_;
   
-  // symmetric operators Lec4p27
-  // friend Lec4p39
   [[nodiscard]] friend constexpr bool operator==(Vec const& lhs, Vec const& rhs) noexcept {
     return lhs.v_ == rhs.v_;
   }
@@ -123,7 +121,6 @@ private:
   }
 
   [[nodiscard]] friend constexpr Vec operator+(Vec const& lhs, Vec const& rhs) noexcept {
-    // list initialization Lec6p9
     Vec result{};
     for (std::size_t ix = 0; ix < lhs.size(); ++ix) {
       result[ix] = lhs[ix] + rhs[ix];
