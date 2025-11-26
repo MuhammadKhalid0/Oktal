@@ -49,8 +49,8 @@ public:
 
   [[nodiscard]] T const &operator[](std::size_t index) const { return v_.at(index); };
 
-  [[nodiscard]] constexpr T *begin() noexcept { return data(); }
-  [[nodiscard]] constexpr const T *begin() const noexcept { return data(); }
+  [[nodiscard]] constexpr T *begin() noexcept { return v_.begin(); }
+  [[nodiscard]] constexpr const T *begin() const noexcept { return v_.begin(); }
 
   [[nodiscard]] constexpr T *end() { return v_.end(); }
   [[nodiscard]] constexpr const T *end() const { return v_.end(); }
