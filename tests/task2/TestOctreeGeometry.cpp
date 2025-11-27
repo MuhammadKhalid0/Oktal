@@ -1,10 +1,9 @@
 #include "advpt/testing/Testutils.hpp"
 #include "oktal/octree/OctreeGeometry.hpp"
 
-#define TEST_BASIC_INTERFACE false
-#define TEST_CELL_EXTENTS false
-#define TEST_CELL_GEOMETRY false
-
+#define TEST_BASIC_INTERFACE true
+#define TEST_CELL_EXTENTS true
+#define TEST_CELL_GEOMETRY true
 
 namespace {
 
