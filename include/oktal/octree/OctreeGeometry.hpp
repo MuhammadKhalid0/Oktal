@@ -22,29 +22,15 @@ public:
     return side_length_ / static_cast<double>(cells_per_dim);
   }
 
-  [[nodiscard]] vector_type cellExtents(std::size_t level) const {
-    auto length = dx(level);
-    return {length, length, length};
-  }
+  [[nodiscard]] vector_type cellExtents(std::size_t level) const;
 
-  [[nodiscard]] vector_type cellMinCorner(MortonIndex const &m) const {
-    auto coord = static_cast<vector_type>(m.gridCoordinates());
-    return origin_ + (coord * dx(m.level()));
-  }
+  [[nodiscard]] vector_type cellMinCorner(MortonIndex const &m) const;
 
-  [[nodiscard]] vector_type cellMaxCorner(MortonIndex const &m) const {
-    auto length = dx(m.level());
-    return cellMinCorner(m) + vector_type(length);
-  }
+  [[nodiscard]] vector_type cellMaxCorner(MortonIndex const &m) const;
 
-  [[nodiscard]] Box<double> cellBoundingBox(MortonIndex const &m) const {
-    return {cellMinCorner(m), cellMaxCorner(m)};
-  }
+  [[nodiscard]] Box<double> cellBoundingBox(MortonIndex const &m) const;
 
-  [[nodiscard]] vector_type cellCenter(MortonIndex const &m) const {
-    auto half_length = dx(m.level()) / 2.0;
-    return cellMinCorner(m) + vector_type(half_length);
-  }
+  [[nodiscard]] vector_type cellCenter(MortonIndex const &m) const;
 
 private:
   vector_type origin_;
