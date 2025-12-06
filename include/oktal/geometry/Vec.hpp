@@ -33,8 +33,7 @@ public:
   constexpr Vec(Vec<S, DIM> const &other) noexcept
     requires std::convertible_to<S, T>
   {
-    for (size_t i = 0; i < DIM; ++i)
-    {
+    for (size_t i = 0; i < DIM; ++i) {
       v_.at(i) = static_cast<T>(other[i]);
     }
   }
@@ -47,7 +46,9 @@ public:
 
   [[nodiscard]] T &operator[](std::size_t index) { return v_.at(index); };
 
-  [[nodiscard]] T const &operator[](std::size_t index) const { return v_.at(index); };
+  [[nodiscard]] T const &operator[](std::size_t index) const {
+    return v_.at(index);
+  };
 
   [[nodiscard]] constexpr T *begin() noexcept { return v_.begin(); }
   [[nodiscard]] constexpr const T *begin() const noexcept { return v_.begin(); }
@@ -56,7 +57,7 @@ public:
   [[nodiscard]] constexpr const T *end() const { return v_.end(); }
 
   constexpr Vec<T, DIM> operator-() const
-  requires (!std::is_unsigned_v<T>)
+    requires(!std::is_unsigned_v<T>)
   {
     Vec<T, DIM> result{};
     for (std::size_t i = 0; i < size(); ++i) {
@@ -66,16 +67,14 @@ public:
   }
 
   Vec<T, DIM> &operator+=(Vec const &other) {
-    for (size_t i = 0; i < DIM; ++i)
-    {
+    for (size_t i = 0; i < DIM; ++i) {
       v_.at(i) += other[i];
     }
     return *this;
   }
 
   Vec<T, DIM> &operator-=(Vec const &other) {
-    for (size_t i = 0; i < DIM; ++i)
-    {
+    for (size_t i = 0; i < DIM; ++i) {
       v_.at(i) -= other[i];
     }
     return *this;
@@ -109,18 +108,18 @@ public:
     return std::sqrt(sqrMagnitude());
   }
 
-private:
-  std::array<T, DIM> v_;
-  
-  [[nodiscard]] friend constexpr bool operator==(Vec const& lhs, Vec const& rhs) noexcept {
+  [[nodiscard]] friend constexpr bool operator==(Vec const &lhs,
+                                                 Vec const &rhs) noexcept {
     return lhs.v_ == rhs.v_;
   }
 
-  [[nodiscard]] friend constexpr bool operator!=(Vec const& lhs, Vec const& rhs) noexcept {
+  [[nodiscard]] friend constexpr bool operator!=(Vec const &lhs,
+                                                 Vec const &rhs) noexcept {
     return !(lhs == rhs);
   }
 
-  [[nodiscard]] friend constexpr Vec operator+(Vec const& lhs, Vec const& rhs) noexcept {
+  [[nodiscard]] friend constexpr Vec operator+(Vec const &lhs,
+                                               Vec const &rhs) noexcept {
     Vec result{};
     for (std::size_t ix = 0; ix < lhs.size(); ++ix) {
       result[ix] = lhs[ix] + rhs[ix];
@@ -128,8 +127,10 @@ private:
     return result;
   }
 
-  // if T is unsigned values might overflow. Maybe useful for periodics later on?
-  [[nodiscard]] friend constexpr Vec operator-(Vec const& lhs, Vec const &rhs) noexcept {
+  // if T is unsigned values might overflow. Maybe useful for periodics later
+  // on?
+  [[nodiscard]] friend constexpr Vec operator-(Vec const &lhs,
+                                               Vec const &rhs) noexcept {
     Vec result{};
     for (std::size_t ix = 0; ix < lhs.size(); ++ix) {
       result[ix] = lhs[ix] - rhs[ix];
@@ -137,11 +138,14 @@ private:
     return result;
   }
 
+private:
+  std::array<T, DIM> v_;
 };
 
 template <typename Scalar, typename T, std::size_t DIM>
   requires std::convertible_to<Scalar, T>
-[[nodiscard]] constexpr Vec<T, DIM> operator*(Vec<T, DIM> const& v, Scalar const& alpha) noexcept {
+[[nodiscard]] constexpr Vec<T, DIM> operator*(Vec<T, DIM> const &v,
+                                              Scalar const &alpha) noexcept {
   Vec<T, DIM> result{};
   for (std::size_t ix = 0; ix < DIM; ++ix) {
     result[ix] = v[ix] * alpha;
@@ -151,18 +155,20 @@ template <typename Scalar, typename T, std::size_t DIM>
 
 template <typename Scalar, typename T, std::size_t DIM>
   requires std::convertible_to<Scalar, T>
-[[nodiscard]] constexpr Vec<T, DIM> operator*(Scalar const& alpha, Vec<T, DIM> const& v) noexcept {
+[[nodiscard]] constexpr Vec<T, DIM> operator*(Scalar const &alpha,
+                                              Vec<T, DIM> const &v) noexcept {
   return v * alpha;
 }
 
 template <typename Scalar, typename T, std::size_t DIM>
   requires std::convertible_to<Scalar, T>
-[[nodiscard]] constexpr Vec<T, DIM> operator/(Vec<T, DIM> const &v, Scalar const &alpha) {
-  Vec<T, DIM> result{}; 
-  for (std::size_t ix = 0; ix < DIM; ++ix) { 
-    result[ix] = v[ix] / alpha; 
-  } 
-  return result; 
+[[nodiscard]] constexpr Vec<T, DIM> operator/(Vec<T, DIM> const &v,
+                                              Scalar const &alpha) {
+  Vec<T, DIM> result{};
+  for (std::size_t ix = 0; ix < DIM; ++ix) {
+    result[ix] = v[ix] / alpha;
+  }
+  return result;
 }
 
 using Vec3F = Vec<float, 3>;
