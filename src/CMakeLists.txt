@@ -7,4 +7,10 @@ target_sources(
     PRIVATE
         geometry/PeriodicBox.cpp
         octree/CellOctree.cpp
+        io/VtkExport.cpp
+)
+
+target_link_libraries(oktal
+  PUBLIC
+    advpt::htgfile
 )

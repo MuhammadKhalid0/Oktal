@@ -8,8 +8,8 @@
 
 #include <highfive/highfive.hpp>
 
-#define TEST_TREE_EXPORT false
-#define TEST_LEVEL_CELL_DATA false
+#define TEST_TREE_EXPORT true
+#define TEST_LEVEL_CELL_DATA true
 
 
 namespace {

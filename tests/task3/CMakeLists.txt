@@ -49,21 +49,21 @@ endforeach()
 
 ############## Tests for VtkExport
 
-#set( TestApp TestVtkExport )
+set( TestApp TestVtkExport )
 
-#add_executable( ${TestApp} ${TestApp}.cpp )
-#target_link_libraries( ${TestApp} PRIVATE oktal advpt::testing )
-#add_dependencies( OktalTests-Task${_Task} ${TestApp} )
+add_executable( ${TestApp} ${TestApp}.cpp )
+target_link_libraries( ${TestApp} PRIVATE oktal advpt::testing )
+add_dependencies( OktalTests-Task${_Task} ${TestApp} )
 
-#set(
-#  TestIDs
-#  testTrivialTree
-#  testSimpleTree
-#  testComplexTree
-#  testLevelCellData
-#)
-#foreach( TestID ${TestIDs} )
-#  set( TestName "${TestApp} - ${TestID}" )
-#  add_test( NAME ${TestName} COMMAND $<TARGET_FILE:${TestApp}> ${TestID} )
-#  set_tests_properties( ${TestName} PROPERTIES LABELS "Task${_Task};Milestone${_Milestone}" )
-#endforeach()
+set(
+  TestIDs
+  testTrivialTree
+  testSimpleTree
+  testComplexTree
+  testLevelCellData
+)
+foreach( TestID ${TestIDs} )
+  set( TestName "${TestApp} - ${TestID}" )
+  add_test( NAME ${TestName} COMMAND $<TARGET_FILE:${TestApp}> ${TestID} )
+  set_tests_properties( ${TestName} PROPERTIES LABELS "Task${_Task};Milestone${_Milestone}" )
+endforeach()

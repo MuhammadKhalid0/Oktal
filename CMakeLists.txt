@@ -8,8 +8,12 @@ add_compile_options(-Wall -Wextra -Wconversion)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 #   Create libraries
+option( ADVPT_ENABLE_HTGFILE "" ON ) # For VTK
+
 
 add_library( oktal )
+add_subdirectory( apps )
+
 
 target_include_directories( oktal PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include )
 

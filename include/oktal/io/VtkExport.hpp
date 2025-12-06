@@ -1,17 +1,13 @@
 #pragma once
 
+#include <filesystem>
+
 #include "oktal/octree/CellOctree.hpp"
 
-#include <string>
+namespace oktal::io::vtk {
 
-namespace oktal {
+void exportOctree(
+    const CellOctree &octree,
+    const std::filesystem::path &filepath);
 
-// Placeholder interface for Task 3c (VTK export).
-// The real implementation will go into src/io/VtkExport.cpp later.
-
-inline void exportToVtk(const CellOctree & /*tree*/,
-                        const std::string & /*filename*/) {
-  // dummy implementation for now
-}
-
-} // namespace oktal
+} // namespace oktal::io::vtk
