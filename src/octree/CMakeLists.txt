@@ -3,3 +3,4 @@ target_sources(
     PRIVATE
         CellOctree.cpp
 )
+target_sources( oktal PRIVATE MortonIndex.cpp OctreeGeometry.cpp)
