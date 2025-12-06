@@ -4,6 +4,7 @@
 #include <format>
 #include <iostream>
 #include <string_view>
+#include <span>
 
 #include "oktal/octree/CellOctree.hpp"
 #include "oktal/io/VtkExport.hpp"
@@ -11,13 +12,15 @@
 int main(int argc, char **argv)
 {
     try {
+        std::span<char*> args{ argv, static_cast<std::size_t>(argc) };
+
         if ( argc != 3 ) {
-            std::cout << std::format( "Usage: {} <filepath> <descriptor>\n", argv[0] );
+            std::cout << std::format( "Usage: {} <filepath> <descriptor>\n", args[0] );
             return 1;
         }
 
-        std::filesystem::path outPath{ argv[1] };
-        std::string_view descriptor{ argv[2] };
+        const std::filesystem::path outPath{ args[1] };
+        const std::string_view descriptor{ args[2] };
 
         auto tree = oktal::CellOctree::fromDescriptor( descriptor );
         oktal::io::vtk::exportOctree( tree, outPath );

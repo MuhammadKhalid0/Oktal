@@ -53,7 +53,7 @@ void exportOctree( const CellOctree &octree, const std::filesystem::path &filepa
 
     std::size_t bitIndex = 0;
     for( std::size_t level = 0; level + 1 < levels; ++level ) {
-        auto levelNodes = octree.nodesStream( level );
+        const auto levelNodes = octree.nodesStream( level );
         for( const auto &node : levelNodes ) {
             setDescriptorBit( bitIndex, node.isRefined() );
             ++bitIndex;
@@ -76,7 +76,7 @@ void exportOctree( const CellOctree &octree, const std::filesystem::path &filepa
 
     bitIndex = 0;
     for( std::size_t level = 0; level < levels; ++level ) {
-        auto levelNodes = octree.nodesStream( level );
+        const auto levelNodes = octree.nodesStream( level );
         for( const auto &node : levelNodes ) {
             const bool maskNode = node.isPhantom() && !node.isRefined();
             setMaskBit( bitIndex, maskNode );

@@ -51,7 +51,7 @@ size_t CellOctree::numberOfNodes( size_t level ) const
 
 span<const CellOctree::Node> CellOctree::nodesStream() const
 {
-    return span<const Node>( nodes_.data(), nodes_.size() );
+    return { nodes_.data(), nodes_.size() };
 }
 
 span<const CellOctree::Node> CellOctree::nodesStream( size_t level ) const
@@ -59,7 +59,7 @@ span<const CellOctree::Node> CellOctree::nodesStream( size_t level ) const
     const size_t start = levelStarts_[ level ];
     const size_t count = levelCounts_[ level ];
 
-    return std::span<const Node>( nodes_.data() + start, count );
+    return { &nodes_[ start ], count };
 }
 
 const OctreeGeometry &CellOctree::geometry() const
@@ -163,12 +163,12 @@ CellOctree CellOctree::fromDescriptor(string_view descriptor)
 
     //1-parsing
     while ( pos < descriptor.size() ) {
-        size_t next = descriptor.find( '|', pos ); //find next level after the current position 
+        const size_t next = descriptor.find( '|', pos ); //find next level after the current position 
 
         string_view levelStr;
-        bool isLastLevel = ( next == string_view::npos );
+        const bool isLastLevel = ( next == string_view::npos );
 
-        if (isLastLevel) {
+        if ( isLastLevel ) {
             levelStr = descriptor.substr( pos ); //extract till last position
         } else {
             levelStr = descriptor.substr( pos, next - pos ); //extract just till next-pos (next level)
@@ -178,7 +178,7 @@ CellOctree CellOctree::fromDescriptor(string_view descriptor)
 
         size_t count = 0;
 
-        for ( char c : levelStr ) {
+        for ( const char c : levelStr ) {
             bool refined = false;
             bool phantom = false;
 
@@ -209,10 +209,10 @@ CellOctree CellOctree::fromDescriptor(string_view descriptor)
 
     for ( size_t level = 0; level + 1 < levels; ++level ) { //not processing last level bcs it has not childern 
 
-        size_t start = tree.levelStarts_[ level ];
-        size_t count = tree.levelCounts_[ level ];
+        const size_t start = tree.levelStarts_[ level ];
+        const size_t count = tree.levelCounts_[ level ];
 
-        size_t childStart = tree.levelStarts_[ level + 1 ];
+        const size_t childStart = tree.levelStarts_[ level + 1 ];
         size_t childIdx = childStart;
 
         for ( size_t i = 0; i < count; ++i ) {
@@ -225,7 +225,7 @@ CellOctree CellOctree::fromDescriptor(string_view descriptor)
         }
 
         //imp for test case: testInvalidDescriptors
-        size_t expectedChildPos = childStart + tree.levelCounts_[ level + 1  ];
+        const size_t expectedChildPos = childStart + tree.levelCounts_[ level + 1  ];
         if ( childIdx != expectedChildPos ) {
             throw invalid_argument( "descriptor inconsistent" );
         }
