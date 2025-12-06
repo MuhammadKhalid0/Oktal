@@ -9,11 +9,30 @@ namespace oktal {
 
 CellOctree::CellOctree()
 {
+    nodes_.clear();
+    levelStarts_.clear();
+    levelCounts_.clear();
+
     // trivial tree: root only
     nodes_.emplace_back();
     levelStarts_.push_back( 0 ); //Level 0
     levelCounts_.push_back( 1 ); //one node to level 0
 }
+
+CellOctree::CellOctree( const OctreeGeometry &geometry ) //Constructor to set Geometry
+    : geometry_( geometry )
+{
+    
+    nodes_.clear();
+    levelStarts_.clear();
+    levelCounts_.clear();
+
+    // trivial tree: root only
+    nodes_.emplace_back();
+    levelStarts_.push_back( 0 );
+    levelCounts_.push_back( 1 );
+}
+
 
 size_t CellOctree::numberOfNodes() const
 {
@@ -22,7 +41,7 @@ size_t CellOctree::numberOfNodes() const
 
 size_t CellOctree::numberOfLevels() const
 {
-    return levelStarts_.size();
+    return levelCounts_.size();
 }
 
 size_t CellOctree::numberOfNodes( size_t level ) const
@@ -41,6 +60,93 @@ span<const CellOctree::Node> CellOctree::nodesStream( size_t level ) const
     const size_t count = levelCounts_[ level ];
 
     return std::span<const Node>( nodes_.data() + start, count );
+}
+
+const OctreeGeometry &CellOctree::geometry() const
+{
+    return geometry_;
+}
+
+CellOctree::CellView::CellView( const CellOctree *tree,
+                                size_t streamIndex,
+                                MortonIndex mortonIndex )
+    : tree_( tree )
+    , streamIndex_( streamIndex )
+    , mortonIndex_( mortonIndex )
+{}
+
+MortonIndex CellOctree::CellView::mortonIndex() const
+{
+    return mortonIndex_;
+}
+
+bool CellOctree::CellView::isRoot() const
+{
+    return mortonIndex_.isRoot();
+}
+
+bool CellOctree::CellView::isRefined() const
+{
+    return tree_->nodes_[ streamIndex_ ].isRefined();
+}
+
+size_t CellOctree::CellView::level() const
+{
+    return mortonIndex_.level();
+}
+
+size_t CellOctree::CellView::streamIndex() const
+{
+    return streamIndex_;
+}
+
+Vec3D CellOctree::CellView::center() const
+{
+    return tree_->geometry_.cellCenter( mortonIndex_ );
+}
+
+Box<double> CellOctree::CellView::boundingBox() const
+{
+    return tree_->geometry_.cellBoundingBox( mortonIndex_ );
+}
+
+// test case TestCellView::testCellQueries
+std::optional<CellOctree::CellView>
+CellOctree::getCell( MortonIndex index ) const
+{
+    // start at root
+    size_t idx = 0;
+    auto path = index.getPath(); // vector<morton_bits_t> with entries 0..7 from root to this index
+
+    for ( auto choice : path ) {
+        const Node &node = nodes_[ idx ];
+
+        // cannot go deeper if not refined
+        if ( !node.isRefined() ) { //test: testCellQueries
+            return std::nullopt;
+        }
+
+        idx = node.childIndex( choice );
+    }
+
+    const Node &node = nodes_[ idx ];
+
+    // phantom nodes are not real cells
+    if ( node.isPhantom() ) {
+        return std::nullopt;
+    }
+
+    return CellView{ this, idx, index };
+}
+
+bool CellOctree::cellExists( MortonIndex index ) const
+{
+    return getCell( index ).has_value();
+}
+
+std::optional<CellOctree::CellView> CellOctree::getRootCell() const
+{
+    return getCell( MortonIndex{} );
 }
 
 CellOctree CellOctree::fromDescriptor(string_view descriptor)

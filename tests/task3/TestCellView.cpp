@@ -6,10 +6,10 @@
 #include <concepts>
 #include <utility>
 
-#include <highfive/highfive.hpp>
+// #include <highfive/highfive.hpp>
 
-#define TEST_GEOMETRY false
-#define TEST_CELL_VIEW false
+#define TEST_GEOMETRY true
+#define TEST_CELL_VIEW true
 
 
 namespace {
