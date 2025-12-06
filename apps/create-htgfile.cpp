@@ -12,7 +12,7 @@
 int main(int argc, char **argv)
 {
     try {
-        std::span<char*> args{ argv, static_cast<std::size_t>(argc) };
+        std::span<char*> const args{ argv, static_cast<std::size_t>(argc) };
 
         if ( argc != 3 ) {
             std::cout << std::format( "Usage: {} <filepath> <descriptor>\n", args[0] );
