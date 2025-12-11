@@ -1,11 +1,12 @@
 #pragma once
 
+#include <concepts>
 #include <cstddef>
+#include <iterator>
+#include <optional>
 #include <span>
 #include <string_view>
 #include <vector>
-
-#include <optional>
 
 #include "oktal/geometry/Box.hpp"
 #include "oktal/geometry/Vec.hpp"
@@ -13,6 +14,8 @@
 #include "oktal/octree/OctreeGeometry.hpp"
 
 namespace oktal {
+
+class OctreeCursor;
 
 class CellOctree {
 
@@ -43,6 +46,8 @@ public:
   [[nodiscard]] std::optional<CellView> getCell(MortonIndex index) const;
   [[nodiscard]] bool cellExists(MortonIndex index) const;
   [[nodiscard]] std::optional<CellView> getRootCell() const;
+  [[nodiscard]] auto preOrderDepthFirstRange() const;
+  [[nodiscard]] auto horizontalRange(std::size_t level) const;
 
   class Node {
 
@@ -140,5 +145,231 @@ private:
   std::vector<std::size_t> levelStarts_;
   std::vector<std::size_t> levelCounts_;
 };
+
+class OctreeCursor {
+public:
+  OctreeCursor() = default;
+  explicit OctreeCursor(CellOctree const &tree) : tree_(&tree), path_{0} {}
+  OctreeCursor(CellOctree const &tree, std::span<const std::size_t> path)
+      : tree_(&tree), path_(path.begin(), path.end()) {}
+  [[nodiscard]] CellOctree const *octree() const { return tree_; }
+  [[nodiscard]] std::span<const std::size_t> path() const { return path_; }
+  [[nodiscard]] bool empty() const { return tree_ == nullptr; }
+  [[nodiscard]] bool end() const { return !empty() && path_.empty(); }
+  [[nodiscard]] std::size_t currentLevel() const { return path_.size() - 1; }
+  [[nodiscard]] std::size_t currentStreamIndex() const { return path_.back(); }
+  [[nodiscard]] std::optional<CellOctree::CellView> currentCell() const {
+    return tree_->getCell(mortonIndex());
+  } // slow
+  [[nodiscard]] bool firstSibling() const {
+    return path_.size() <= 1 ||
+           currentStreamIndex() == getCurrentParentChildrenStartIndex();
+  }
+  [[nodiscard]] bool lastSibling() const {
+    return path_.size() <= 1 ||
+           currentStreamIndex() == getCurrentParentChildrenStartIndex() + 7;
+  }
+  [[nodiscard]] MortonIndex mortonIndex() const;
+  bool operator==(const OctreeCursor &) const = default;
+  void ascend() { path_.pop_back(); }
+  void descend() { descend(0); }
+  void descend(std::size_t childIdx);
+  void previousSibling();
+  void nextSibling();
+  void toSibling(std::size_t siblingIdx);
+  void toEnd() { path_.clear(); }
+
+private:
+  const CellOctree *tree_ = nullptr;
+  std::vector<std::size_t> path_;
+  std::size_t getCurrentParentChildrenStartIndex() const;
+};
+
+template <typename OIP>
+concept OctreeIteratorPolicy =
+    std::semiregular<OIP> && requires(const OIP &policy, OctreeCursor &cursor) {
+      { policy.advance(cursor) } -> std::same_as<void>;
+    };
+
+template <OctreeIteratorPolicy TPolicy> class OctreeCellsIterator {
+public:
+  using iterator_category = std::forward_iterator_tag;
+  using value_type = CellOctree::CellView;
+  using difference_type = std::ptrdiff_t;
+  struct ArrowProxy {
+    CellOctree::CellView v;
+    const CellOctree::CellView *operator->() const { return &v; }
+  };
+  using pointer = ArrowProxy;
+  using reference = CellOctree::CellView;
+  OctreeCellsIterator() = default;
+  OctreeCellsIterator(OctreeCursor cursor, TPolicy policy)
+      : cursor_(std::move(cursor)), tpolicy_(std::move(policy)) {}
+  reference operator*() const { return cursor_.currentCell().value(); }
+  ArrowProxy operator->() const {
+    return ArrowProxy{cursor_.currentCell().value()};
+  }
+  OctreeCellsIterator &operator++() {
+    tpolicy_.advance(cursor_);
+    return *this;
+  }
+  OctreeCellsIterator operator++(int) {
+    OctreeCellsIterator temp = *this;
+    ++(*this);
+    return temp;
+  }
+  friend bool operator==(const OctreeCellsIterator &lhs,
+                         const OctreeCellsIterator &rhs) {
+    return lhs.cursor_ == rhs.cursor_;
+  }
+  friend bool operator!=(const OctreeCellsIterator &lhs,
+                         const OctreeCellsIterator &rhs) {
+    return !(lhs == rhs);
+  }
+
+private:
+  OctreeCursor cursor_;
+  TPolicy tpolicy_;
+};
+template <typename T> using OctreeIterator = OctreeCellsIterator<T>;
+
+template <OctreeIteratorPolicy TPolicy> class OctreeCellsRange {
+public:
+  OctreeCellsRange(OctreeCursor start, OctreeCursor end, TPolicy policy)
+      : start_(std::move(start)), end_(std::move(end)),
+        policy_(std::move(policy)) {}
+  OctreeCellsIterator<TPolicy> begin() const {
+    return OctreeCellsIterator<TPolicy>(start_, policy_);
+  }
+  OctreeCellsIterator<TPolicy> end() const {
+    return OctreeCellsIterator<TPolicy>(end_, policy_);
+  }
+
+private:
+  OctreeCursor start_;
+  OctreeCursor end_;
+  TPolicy policy_;
+};
+
+class PreOrderDFSPolicy {
+public:
+  // NOLINTNEXTLINE(readability-convert-member-functions-to-static)
+  void advance(OctreeCursor &c) const {
+    if (c.end()) {
+      return;
+    }
+
+    while (true) {
+      const auto &nodes = c.octree()->nodesStream();
+      const auto &currentNode = nodes[c.currentStreamIndex()];
+
+      if (currentNode.isRefined()) {
+        c.descend();
+      } else {
+        while (c.lastSibling()) {
+          if (c.currentLevel() == 0) {
+            c.toEnd();
+            return;
+          }
+          c.ascend();
+        }
+        c.nextSibling();
+      }
+
+      if (c.end()) {
+        return;
+      }
+
+      const auto &newNode = nodes[c.currentStreamIndex()];
+      if (!newNode.isPhantom()) {
+        return;
+      }
+    }
+  }
+};
+
+class HorizontalPolicy {
+public:
+  HorizontalPolicy() = default;
+  explicit HorizontalPolicy(std::size_t targetLevel)
+      : targetLevel_(targetLevel) {}
+
+  // NOLINTNEXTLINE(readability-convert-member-functions-to-static)
+  void advance(OctreeCursor &c) const {
+    if (c.end()) {
+      return;
+    }
+
+    while (true) {
+      if (!c.lastSibling()) {
+        c.nextSibling();
+      } else {
+        while (c.lastSibling()) {
+          if (c.currentLevel() == 0) {
+            c.toEnd();
+            return;
+          }
+          c.ascend();
+        }
+
+        c.nextSibling();
+
+        while (c.currentLevel() < targetLevel_) {
+          c.descend(0);
+        }
+      }
+
+      const auto &nodes = c.octree()->nodesStream();
+      const auto &currentNode = nodes[c.currentStreamIndex()];
+
+      if (!currentNode.isPhantom()) {
+        return;
+      }
+    }
+  }
+
+private:
+  std::size_t targetLevel_{0};
+};
+
+inline auto CellOctree::preOrderDepthFirstRange() const {
+  OctreeCursor start(*this);
+  OctreeCursor end(*this);
+  end.toEnd();
+
+  if (!start.end()) {
+    const auto &nodes = nodesStream();
+    if (nodes[start.currentStreamIndex()].isPhantom()) {
+      PreOrderDFSPolicy policy;
+      policy.advance(start);
+    }
+  }
+
+  return OctreeCellsRange<PreOrderDFSPolicy>(std::move(start), std::move(end),
+                                             PreOrderDFSPolicy{});
+}
+inline auto CellOctree::horizontalRange(std::size_t level) const {
+  OctreeCursor start(*this);
+  OctreeCursor end(*this);
+  end.toEnd();
+
+  if (level < numberOfLevels()) {
+
+    while (start.currentLevel() < level) {
+      start.descend(0);
+    }
+
+    const auto &nodes = nodesStream();
+    if (nodes[start.currentStreamIndex()].isPhantom()) {
+      HorizontalPolicy policy(level);
+      policy.advance(start);
+    }
+  } else {
+    start.toEnd();
+  }
+
+  return OctreeCellsRange<HorizontalPolicy>(std::move(start), std::move(end),
+                                            HorizontalPolicy{level});
+}
 
 } // namespace oktal
