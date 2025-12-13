@@ -182,7 +182,7 @@ public:
 private:
   const CellOctree *tree_ = nullptr;
   std::vector<std::size_t> path_;
-  std::size_t getCurrentParentChildrenStartIndex() const;
+  [[nodiscard]] std::size_t getCurrentParentChildrenStartIndex() const;
 };
 
 template <typename OIP>
@@ -197,7 +197,9 @@ public:
   using value_type = CellOctree::CellView;
   using difference_type = std::ptrdiff_t;
   struct ArrowProxy {
+  private:
     CellOctree::CellView v;
+  public:
     const CellOctree::CellView *operator->() const { return &v; }
   };
   using pointer = ArrowProxy;
@@ -238,10 +240,10 @@ public:
   OctreeCellsRange(OctreeCursor start, OctreeCursor end, TPolicy policy)
       : start_(std::move(start)), end_(std::move(end)),
         policy_(std::move(policy)) {}
-  OctreeCellsIterator<TPolicy> begin() const {
+  [[nodiscard]] OctreeCellsIterator<TPolicy> begin() const {
     return OctreeCellsIterator<TPolicy>(start_, policy_);
   }
-  OctreeCellsIterator<TPolicy> end() const {
+  [[nodiscard]] OctreeCellsIterator<TPolicy> end() const {
     return OctreeCellsIterator<TPolicy>(end_, policy_);
   }
 
@@ -258,14 +260,10 @@ public:
     if (c.end()) {
       return;
     }
-
     while (true) {
-      const auto &nodes = c.octree()->nodesStream();
-      const auto &currentNode = nodes[c.currentStreamIndex()];
-
-      if (currentNode.isRefined()) {
-        c.descend();
-      } else {
+      const auto prevLevel = c.currentLevel();
+      c.descend();
+      if (c.currentLevel() == prevLevel) {
         while (c.lastSibling()) {
           if (c.currentLevel() == 0) {
             c.toEnd();
@@ -275,13 +273,10 @@ public:
         }
         c.nextSibling();
       }
-
       if (c.end()) {
         return;
       }
-
-      const auto &newNode = nodes[c.currentStreamIndex()];
-      if (!newNode.isPhantom()) {
+      if (c.currentCell().has_value()) {
         return;
       }
     }
@@ -299,11 +294,12 @@ public:
     if (c.end()) {
       return;
     }
-
     while (true) {
-      if (!c.lastSibling()) {
-        c.nextSibling();
-      } else {
+      const auto prevLevel = c.currentLevel();
+      if (c.currentLevel() < targetLevel_) {
+        c.descend();
+      } 
+      if (c.currentLevel() == prevLevel) {
         while (c.lastSibling()) {
           if (c.currentLevel() == 0) {
             c.toEnd();
@@ -311,18 +307,12 @@ public:
           }
           c.ascend();
         }
-
         c.nextSibling();
-
-        while (c.currentLevel() < targetLevel_) {
-          c.descend(0);
-        }
       }
-
-      const auto &nodes = c.octree()->nodesStream();
-      const auto &currentNode = nodes[c.currentStreamIndex()];
-
-      if (!currentNode.isPhantom()) {
+      if (c.end()) {
+        return;
+      }
+      if (c.currentLevel() == targetLevel_ && c.currentCell().has_value()) {
         return;
       }
     }
@@ -338,8 +328,7 @@ inline auto CellOctree::preOrderDepthFirstRange() const {
   end.toEnd();
 
   if (!start.end()) {
-    const auto &nodes = nodesStream();
-    if (nodes[start.currentStreamIndex()].isPhantom()) {
+    if (!start.currentCell().has_value()) {
       PreOrderDFSPolicy policy;
       policy.advance(start);
     }
@@ -353,19 +342,16 @@ inline auto CellOctree::horizontalRange(std::size_t level) const {
   OctreeCursor end(*this);
   end.toEnd();
 
-  if (level < numberOfLevels()) {
-
-    while (start.currentLevel() < level) {
-      start.descend(0);
+  if (!start.end()) {
+    if (level >= start.octree()->numberOfLevels()) {
+      start.toEnd();
+      return OctreeCellsRange<HorizontalPolicy>(std::move(start), std::move(end),
+                                            HorizontalPolicy{level});
     }
-
-    const auto &nodes = nodesStream();
-    if (nodes[start.currentStreamIndex()].isPhantom()) {
+    if (!start.currentCell().has_value() || start.currentLevel() < level) {
       HorizontalPolicy policy(level);
       policy.advance(start);
     }
-  } else {
-    start.toEnd();
   }
 
   return OctreeCellsRange<HorizontalPolicy>(std::move(start), std::move(end),

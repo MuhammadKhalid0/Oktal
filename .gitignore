@@ -7,3 +7,5 @@
 
 #   CMake Presets
 **/CMakeUserPresets.json
+
+.cache/

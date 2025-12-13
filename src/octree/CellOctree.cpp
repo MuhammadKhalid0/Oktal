@@ -267,21 +267,18 @@ void OctreeCursor::toSibling(std::size_t siblingIdx) {
 }
 
 void OctreeCursor::previousSibling() {
-  if (empty() || path_.size() <= 1) {
+  if (empty() || path_.size() <= 1 || firstSibling()) {
     return;
   }
-  if (!firstSibling()) {
-    path_.back()--;
-  }
+  path_.back()--;
 }
 
 void OctreeCursor::nextSibling() {
-  if (empty() || path_.size() <= 1) {
+  if (empty() || path_.size() <= 1 || lastSibling()) {
     return;
   }
-  if (!lastSibling()) {
-    path_.back()++;
-  }
+  path_.back()++;
+
 }
 
 [[nodiscard]] std::size_t
