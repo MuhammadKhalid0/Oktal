@@ -329,7 +329,7 @@ inline auto CellOctree::preOrderDepthFirstRange() const {
 
   if (!start.end()) {
     if (!start.currentCell().has_value()) {
-      PreOrderDFSPolicy policy;
+      const PreOrderDFSPolicy policy;
       policy.advance(start);
     }
   }
@@ -349,7 +349,7 @@ inline auto CellOctree::horizontalRange(std::size_t level) const {
                                             HorizontalPolicy{level});
     }
     if (!start.currentCell().has_value() || start.currentLevel() < level) {
-      HorizontalPolicy policy(level);
+      const HorizontalPolicy policy(level);
       policy.advance(start);
     }
   }

@@ -224,8 +224,8 @@ CellOctree CellOctree::fromDescriptor(string_view descriptor) {
   auto nodes = tree_->nodesStream();
 
   for (std::size_t i = 0; i < path_.size() - 1; ++i) {
-    std::size_t parentIdx = path_[i];
-    std::size_t childIdx = path_[i + 1];
+    const std::size_t parentIdx = path_[i];
+    const std::size_t childIdx = path_[i + 1];
     const auto &parentNode = nodes[parentIdx];
     auto branch = childIdx - parentNode.childrenStartIndex();
     branches.push_back(branch);
@@ -260,7 +260,7 @@ void OctreeCursor::toSibling(std::size_t siblingIdx) {
     }
     return;
   }
-  std::size_t parentIdx = path_[path_.size() - 2];
+  const std::size_t parentIdx = path_[path_.size() - 2];
   const auto &parentNode = tree_->nodesStream()[parentIdx];
 
   path_.back() = parentNode.childIndex(siblingIdx);
@@ -286,7 +286,7 @@ OctreeCursor::getCurrentParentChildrenStartIndex() const {
   if (path_.size() <= 1) {
     return 0;
   }
-  std::size_t parentIdx = path_[path_.size() - 2];
+  const std::size_t parentIdx = path_[path_.size() - 2];
   const auto &parentNode = tree_->nodesStream()[parentIdx];
 
   return parentNode.childrenStartIndex();
