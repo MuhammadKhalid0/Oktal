@@ -118,6 +118,8 @@ public:
 
   class CellView {
   public:
+
+    CellView() = default;
     [[nodiscard]] MortonIndex mortonIndex() const;
     [[nodiscard]] bool isRoot() const;
     [[nodiscard]] bool isRefined() const;
@@ -207,9 +209,9 @@ public:
   OctreeCellsIterator() = default;
   OctreeCellsIterator(OctreeCursor cursor, TPolicy policy)
       : cursor_(std::move(cursor)), tpolicy_(std::move(policy)) {}
-  reference operator*() const { return cursor_.currentCell().value(); }
+  reference operator*() const { return cursor_.currentCell().value_or(CellOctree::CellView{}); }
   ArrowProxy operator->() const {
-    return ArrowProxy{cursor_.currentCell().value()};
+    return ArrowProxy{cursor_.currentCell().value_or(CellOctree::CellView{})};
   }
   OctreeCellsIterator &operator++() {
     tpolicy_.advance(cursor_);
