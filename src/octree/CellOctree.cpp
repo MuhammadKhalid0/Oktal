@@ -224,18 +224,18 @@ CellOctree::createUniformGrid(OctreeGeometry geom, std::size_t level) {
     return std::make_shared<CellOctree>(geom);
   }
 
-  // Build descriptor string: all cells refined down to target level
-  std::string descriptor = "R";
+  // Build descriptor: mark all non-leaf levels as phantoms
+  std::string descriptor = "X";
 
   for (std::size_t l = 1; l < level; ++l) {
     descriptor += "|";
     std::size_t numCells = 1uz << (3 * l);
     for (std::size_t i = 0; i < numCells; ++i) {
-      descriptor += "R";
+      descriptor += "X";
     }
   }
 
-  // Last level contains only leaves
+  // Last level contains only real cells (leaves)
   descriptor += "|";
   std::size_t numLeaves = 1uz << (3 * level);
   for (std::size_t i = 0; i < numLeaves; ++i) {
