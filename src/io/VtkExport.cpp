@@ -106,7 +106,7 @@ void exportOctree( const CellOctree &octree, const std::filesystem::path &filepa
 
 CellGridVtkExporter::CellGridVtkExporter(const CellGrid &cells,
                                          advpt::htgfile::SnapshotHtgFile &&file)
-    : cells_(cells), file_(std::move(file)) {}
+    : cells_(&cells), file_(std::move(file)) {}
 
 CellGridVtkExporter exportCellGrid(const CellGrid &cells,
                                    const std::filesystem::path &filepath) {
@@ -140,8 +140,9 @@ CellGridVtkExporter exportCellGrid(const CellGrid &cells,
   ht.descriptor.assign(descriptorBytes, std::uint8_t{0});
 
   auto setDescriptorBit = [&](std::size_t bitIndex, bool value) {
-    if (!value || descriptorBits == 0)
+    if (!value || descriptorBits == 0) {
       return;
+    }
     const std::size_t byteIndex = bitIndex / 8;
     const int bitInByte = 7 - static_cast<int>(bitIndex % 8);
     ht.descriptor[byteIndex] |= static_cast<std::uint8_t>(1u << bitInByte);
@@ -161,8 +162,9 @@ CellGridVtkExporter exportCellGrid(const CellGrid &cells,
   ht.mask.assign(maskBytes, std::uint8_t{0});
 
   auto setMaskBit = [&](std::size_t bitIndex, bool value) {
-    if (!value || maskBits == 0)
+    if (!value || maskBits == 0) {
       return;
+    }
     const std::size_t byteIndex = bitIndex / 8;
     const int bitInByte = 7 - static_cast<int>(bitIndex % 8);
     ht.mask[byteIndex] |= static_cast<std::uint8_t>(1u << bitInByte);
@@ -192,21 +194,21 @@ CellGridVtkExporter exportCellGrid(const CellGrid &cells,
   file.writeCellData(
       "level", std::span<const std::size_t>(levelData.data(), levelData.size()));
 
-  return CellGridVtkExporter(cells, std::move(file));
+  return {cells, std::move(file)};
 }
 
 template <typename T>
 CellGridVtkExporter &
 CellGridVtkExporter::writeGridVector(const std::string &name,
                                      std::span<const T> gridVector) {
-  const auto &octree = cells_.octree();
+  const auto &octree = cells_->octree();
   const std::size_t totalNodes = octree.numberOfNodes();
 
   // VTK expects data for all nodes, but grid vectors only contain enumerated cells
   std::vector<T> fullVector(totalNodes, T{0});
 
-  for (std::size_t enumIdx = 0; enumIdx < cells_.size(); ++enumIdx) {
-    const auto &mortonIndex = cells_.mortonIndices()[enumIdx];
+  for (std::size_t enumIdx = 0; enumIdx < cells_->size(); ++enumIdx) {
+    const auto &mortonIndex = cells_->mortonIndices()[enumIdx];
     auto cellOpt = octree.getCell(mortonIndex);
     if (cellOpt.has_value()) {
       fullVector[cellOpt->streamIndex()] = gridVector[enumIdx];

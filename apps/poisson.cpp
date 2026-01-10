@@ -36,10 +36,13 @@ double computeL2Norm(const std::vector<double> &residual, std::size_t ncells) {
 
 int main(int argc, char **argv) {
   try {
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+    const std::span<char *> args(argv, static_cast<std::size_t>(argc));
+    
     if (argc != 5) {
       std::cerr << std::format("Usage: {} <refinementLevel> <max-iterations> "
                                "<epsilon> <output-file>\n",
-                               argv[0]);
+                               args[0]);
       return 1;
     }
 
@@ -48,18 +51,18 @@ int main(int argc, char **argv) {
     double epsilon{};
 
     try {
-      refinementLevel = std::stoull(argv[1]);
-      maxIterations = std::stoull(argv[2]);
-      epsilon = std::stod(argv[3]);
+      refinementLevel = std::stoull(args[1]);
+      maxIterations = std::stoull(args[2]);
+      epsilon = std::stod(args[3]);
     } catch (const std::exception &) {
       std::cerr << "Error: Invalid command line arguments\n";
       std::cerr << std::format("Usage: {} <refinementLevel> <max-iterations> "
                                "<epsilon> <output-file>\n",
-                               argv[0]);
+                               args[0]);
       return 1;
     }
 
-    const std::filesystem::path outputFile{argv[4]};
+    const std::filesystem::path outputFile{args[4]};
 
     auto octree = oktal::CellOctree::createUniformGrid(refinementLevel);
 

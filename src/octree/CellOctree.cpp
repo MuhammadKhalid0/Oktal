@@ -229,7 +229,7 @@ CellOctree::createUniformGrid(OctreeGeometry geom, std::size_t level) {
 
   for (std::size_t l = 1; l < level; ++l) {
     descriptor += "|";
-    std::size_t numCells = 1uz << (3 * l);
+    const std::size_t numCells = 1uz << (3 * l);
     for (std::size_t i = 0; i < numCells; ++i) {
       descriptor += "X";
     }
@@ -237,7 +237,7 @@ CellOctree::createUniformGrid(OctreeGeometry geom, std::size_t level) {
 
   // Last level contains only real cells (leaves)
   descriptor += "|";
-  std::size_t numLeaves = 1uz << (3 * level);
+  const std::size_t numLeaves = 1uz << (3 * level);
   for (std::size_t i = 0; i < numLeaves; ++i) {
     descriptor += ".";
   }

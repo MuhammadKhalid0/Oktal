@@ -25,12 +25,12 @@ public:
                                        std::span<const T> gridVector);
 
 private:
-  friend CellGridVtkExporter exportCellGrid(const CellGrid &,
-                                            const std::filesystem::path &);
+  friend CellGridVtkExporter exportCellGrid(const CellGrid &cells,
+                                            const std::filesystem::path &filepath);
   CellGridVtkExporter(const CellGrid &cells,
                       advpt::htgfile::SnapshotHtgFile &&file);
 
-  const CellGrid &cells_;
+  const CellGrid *cells_;
   advpt::htgfile::SnapshotHtgFile file_;
 };
 
