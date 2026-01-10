@@ -6,11 +6,11 @@
 #include <algorithm>
 #include <ranges>
 
-#define TEST_ENUMERATION_INTERFACE false
-#define TEST_BUILDER false
-#define TEST_ADJACENCY false
-#define TEST_PERIODICITY false
-#define TEST_RANGE false
+#define TEST_ENUMERATION_INTERFACE true
+#define TEST_BUILDER true
+#define TEST_ADJACENCY true
+#define TEST_PERIODICITY true
+#define TEST_RANGE true
 
 namespace {
 
