@@ -6,8 +6,8 @@
 
 #include <algorithm>
 
-#define TEST_UNIFORM_GRID false
-#define TEST_VTK_EXPORT false
+#define TEST_UNIFORM_GRID true
+#define TEST_VTK_EXPORT true
 
 namespace {
 using namespace oktal;

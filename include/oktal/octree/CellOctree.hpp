@@ -40,6 +40,10 @@ public:
       std::string_view descriptor); // to inatalize an octree from a descriptor
                                     // string X|.X...XP.|PPPP........PPPP
 
+  static std::shared_ptr<const CellOctree> createUniformGrid(std::size_t level);
+  static std::shared_ptr<const CellOctree>
+  createUniformGrid(OctreeGeometry geom, std::size_t level);
+
   explicit CellOctree(const OctreeGeometry &geometry);
   [[nodiscard]] const OctreeGeometry &geometry() const;
 

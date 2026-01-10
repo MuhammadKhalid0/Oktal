@@ -213,6 +213,42 @@ CellOctree CellOctree::fromDescriptor(string_view descriptor) {
   return tree;
 }
 
+std::shared_ptr<const CellOctree>
+CellOctree::createUniformGrid(std::size_t level) {
+  return createUniformGrid(OctreeGeometry(), level);
+}
+
+std::shared_ptr<const CellOctree>
+CellOctree::createUniformGrid(OctreeGeometry geom, std::size_t level) {
+  if (level == 0) {
+    return std::make_shared<CellOctree>(geom);
+  }
+
+  // Build descriptor string: all cells refined down to target level
+  std::string descriptor = "R";
+
+  for (std::size_t l = 1; l < level; ++l) {
+    descriptor += "|";
+    std::size_t numCells = 1uz << (3 * l);
+    for (std::size_t i = 0; i < numCells; ++i) {
+      descriptor += "R";
+    }
+  }
+
+  // Last level contains only leaves
+  descriptor += "|";
+  std::size_t numLeaves = 1uz << (3 * level);
+  for (std::size_t i = 0; i < numLeaves; ++i) {
+    descriptor += ".";
+  }
+
+  auto tree = std::make_shared<CellOctree>(fromDescriptor(descriptor));
+  auto mutableTree = std::const_pointer_cast<CellOctree>(tree);
+  mutableTree->geometry_ = geom;
+
+  return tree;
+}
+
 [[nodiscard]] MortonIndex OctreeCursor::mortonIndex() const {
   if (empty() || path_.size() <= 1) {
     return {};
