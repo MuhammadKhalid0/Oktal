@@ -4,11 +4,9 @@
 #include <span>
 #include <string>
 
-#include "oktal/octree/CellOctree.hpp"
+#include <advpt/htgfile/VtkHtgFile.hpp>
 
-namespace advpt::htgfile {
-class SnapshotHtgFile;
-}
+#include "oktal/octree/CellOctree.hpp"
 
 namespace oktal {
 class CellGrid;
