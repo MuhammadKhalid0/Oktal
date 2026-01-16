@@ -14,6 +14,7 @@ option( ADVPT_ENABLE_HTGFILE "" ON ) # For VTK
 add_library( oktal )
 add_subdirectory( apps )
 
+set(CMAKE_PREFIX_PATH /proj/cipdata/da15siwa/advpt-packages)
 
 target_include_directories( oktal PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include )
 
