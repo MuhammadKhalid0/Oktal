@@ -1,11 +1,13 @@
 #pragma once
 
+#include <cstddef>
 #include <filesystem>
 #include <span>
 #include <string>
 
 #include <advpt/htgfile/VtkHtgFile.hpp>
 
+#include "oktal/data/GridVector.hpp"
 #include "oktal/octree/CellOctree.hpp"
 
 namespace oktal {
@@ -23,6 +25,10 @@ public:
   template <typename T>
   CellGridVtkExporter &writeGridVector(const std::string &name,
                                        std::span<const T> gridVector);
+
+  template <typename T, size_t Q>
+  CellGridVtkExporter &writeGridVector(const std::string &id,
+                                      GridVectorView<const T, Q> vector);
 
 private:
   friend CellGridVtkExporter exportCellGrid(const CellGrid &cells,

@@ -8,7 +8,7 @@
 #include "oktal/octree/CellGrid.hpp"
 #include "oktal/octree/CellOctree.hpp"
 
-#define TEST_WRITE_GRID_VECTOR false
+#define TEST_WRITE_GRID_VECTOR true
 
 
 namespace {
