@@ -28,7 +28,7 @@ struct D3Q19 {
    * Index 1-6:    cardinal directions
    * Index 7-18:   diagonal directions
    */
-  static constexpr std::array<Vec<std::ptrdiff_t, 3>, Q> C{{
+  static inline const std::array<Vec<std::ptrdiff_t, 3>, Q> C{{
       {0, 0, 0},    // 0  - C  (center)
       {1, 0, 0},    // 1  - W
       {-1, 0, 0},   // 2  - E
@@ -69,7 +69,7 @@ struct D3Q19 {
    * All non-zero velocity directions (indices 1..18), suitable for
    * passing to CellGridBuilder::neighborhood().
    */
-  static constexpr std::array<Vec<std::ptrdiff_t, 3>, Q - 1> CS_NO_CENTER{{
+  static inline const std::array<Vec<std::ptrdiff_t, 3>, Q - 1> CS_NO_CENTER{{
       C[1],  C[2],  C[3],  C[4],  C[5],  C[6],
       C[7],  C[8],  C[9],  C[10], C[11], C[12],
       C[13], C[14], C[15], C[16], C[17], C[18],
