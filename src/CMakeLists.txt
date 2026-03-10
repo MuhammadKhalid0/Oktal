@@ -13,5 +13,4 @@ target_sources(
 target_link_libraries(oktal
   PUBLIC
     advpt::htgfile
-    advpt::mdspan
 )
