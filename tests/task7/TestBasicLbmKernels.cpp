@@ -16,7 +16,6 @@
 #define TEST_COLLISION true
 #define TEST_STREAMING true
 
-
 namespace {
 using namespace oktal;
 
@@ -47,13 +46,14 @@ void testInitialization1() {
     uView[cellIdx, 0uz] = uView[cellIdx, 1uz] = uView[cellIdx, 2uz] = 0.;
 
     for (auto q : std::views::iota(0uz, lbm::D3Q19::Q)) {
-      pdfsExpected[cellIdx, q] = rhoView[cellIdx] * lbm::D3Q19::W[q];
+      pdfsExpected[cellIdx, q] = rhoView[cellIdx] * lbm::D3Q19::W.at(q);
     }
   }
 
   lbm::InitializePdfs initPdfs;
-  std::ranges::for_each(cells,
-                        [&](auto cell) { initPdfs(cell, pdfs.view(), rho.const_view(), u.const_view()); });
+  std::ranges::for_each(cells, [&](auto cell) {
+    initPdfs(cell, pdfs.view(), rho.const_view(), u.const_view());
+  });
 
   advpt::testing::with_tolerance{0., 1e-10}.assert_allclose(
       std::span(pdfs.data(), pdfs.allocSize()),
@@ -80,7 +80,7 @@ void testInitialization2() {
   GridVector<double, 3> u{cells};
 
   const HighFive::File datafile{std::filesystem::path(DATAFILE),
-                          HighFive::File::ReadOnly};
+                                HighFive::File::ReadOnly};
   const size_t numChunks{datafile.getAttribute("numChunks").read<size_t>()};
 
   auto rhoDset = datafile.getDataSet("rho");
@@ -94,8 +94,9 @@ void testInitialization2() {
         .read_raw(pdfsExpected.data());
 
     lbm::InitializePdfs initPdfs;
-    std::ranges::for_each(cells,
-                          [&](auto cell) { initPdfs(cell, pdfs.view(), rho.const_view(), u.const_view()); });
+    std::ranges::for_each(cells, [&](auto cell) {
+      initPdfs(cell, pdfs.view(), rho.const_view(), u.const_view());
+    });
 
     advpt::testing::with_tolerance{0., 1e-10}.assert_allclose(
         std::span(pdfs.data(), pdfs.allocSize()),
@@ -135,13 +136,14 @@ void testMacroscopicQuantities1() {
     uView[cellIdx, 0uz] = uView[cellIdx, 1uz] = uView[cellIdx, 2uz] = 0.;
 
     for (auto q : std::views::iota(0uz, lbm::D3Q19::Q)) {
-      pdfs[cellIdx, q] = rho * lbm::D3Q19::W[q];
+      pdfs[cellIdx, q] = rho * lbm::D3Q19::W.at(q);
     }
   }
 
   lbm::ComputeMacroscopicQuantities computeMQs;
-  std::ranges::for_each(cells,
-                        [&](auto cell) { computeMQs(cell, pdfs.const_view(), rho.view(), u.view()); });
+  std::ranges::for_each(cells, [&](auto cell) {
+    computeMQs(cell, pdfs.const_view(), rho.view(), u.view());
+  });
 
   advpt::testing::with_tolerance{0., 1e-10}.assert_allclose(
       std::span(rho.data(), rho.allocSize()),
@@ -174,7 +176,7 @@ void testMacroscopicQuantities2() {
   GridVector<double, 3> uExpected{cells};
 
   const HighFive::File datafile{std::filesystem::path(DATAFILE),
-                          HighFive::File::ReadOnly};
+                                HighFive::File::ReadOnly};
   const size_t numChunks{datafile.getAttribute("numChunks").read<size_t>()};
 
   auto rhoDset = datafile.getDataSet("rho");
@@ -189,8 +191,9 @@ void testMacroscopicQuantities2() {
         .read_raw(pdfs.data());
 
     lbm::ComputeMacroscopicQuantities computeMQs;
-    std::ranges::for_each(cells,
-                          [&](auto cell) { computeMQs(cell, pdfs.const_view(), rho.view(), u.view()); });
+    std::ranges::for_each(cells, [&](auto cell) {
+      computeMQs(cell, pdfs.const_view(), rho.view(), u.view());
+    });
 
     advpt::testing::with_tolerance{0., 1e-10}.assert_allclose(
         std::span(rho.data(), rho.allocSize()),
@@ -221,7 +224,7 @@ void testCollision() {
   GridVector<double, 3> u{cells};
 
   const HighFive::File datafile{std::filesystem::path(DATAFILE),
-                          HighFive::File::ReadOnly};
+                                HighFive::File::ReadOnly};
   const size_t numChunks{datafile.getAttribute("numChunks").read<size_t>()};
 
   auto rhoDset = datafile.getDataSet("rho");
@@ -241,8 +244,9 @@ void testCollision() {
     auto omega = omegaDset.select({chunkIdx}, {1uz}).read<double>();
 
     lbm::Collide collide{omega};
-    std::ranges::for_each(cells,
-                          [&](auto cell) { collide(cell, pdfs.view(), rho.const_view(), u.const_view()); });
+    std::ranges::for_each(cells, [&](auto cell) {
+      collide(cell, pdfs.view(), rho.const_view(), u.const_view());
+    });
 
     advpt::testing::with_tolerance{0., 1e-10}.assert_allclose(
         std::span(pdfs.data(), pdfs.allocSize()),
@@ -268,7 +272,7 @@ void testStreaming() {
   lbm::D3Q19Lattice pdfsExpected{cells};
 
   const HighFive::File datafile{std::filesystem::path(DATAFILE),
-                          HighFive::File::ReadOnly};
+                                HighFive::File::ReadOnly};
   const size_t numChunks{datafile.getAttribute("numChunks").read<size_t>()};
 
   auto pdfsDset = datafile.getDataSet("postCollisionPdfs");
@@ -281,8 +285,9 @@ void testStreaming() {
         .read_raw(pdfsExpected.data());
 
     lbm::Stream stream;
-    std::ranges::for_each(cells,
-                          [&](auto cell) { stream(cell, pdfsTmp.view(), pdfs.const_view()); });
+    std::ranges::for_each(cells, [&](auto cell) {
+      stream(cell, pdfsTmp.view(), pdfs.const_view());
+    });
 
     advpt::testing::with_tolerance{0., 1e-10}.assert_allclose(
         std::span(pdfsTmp.data(), pdfsTmp.allocSize()),

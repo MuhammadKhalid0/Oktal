@@ -15,13 +15,13 @@ namespace oktal::lbm {
  */
 inline double equilibrium(size_t q, double density, double ux, double uy,
                           double uz, double uSqr) {
-  const auto cx = static_cast<double>(D3Q19::C[q][0]);
-  const auto cy = static_cast<double>(D3Q19::C[q][1]);
-  const auto cz = static_cast<double>(D3Q19::C[q][2]);
+  const auto cx = static_cast<double>(D3Q19::C.at(q)[0]);
+  const auto cy = static_cast<double>(D3Q19::C.at(q)[1]);
+  const auto cz = static_cast<double>(D3Q19::C.at(q)[2]);
 
   const double ciDotU = cx * ux + cy * uy + cz * uz;
 
-  return D3Q19::W[q] * density *
+  return D3Q19::W.at(q) * density *
          (1.0 + 3.0 * ciDotU + 4.5 * ciDotU * ciDotU - 1.5 * uSqr);
 }
 
@@ -70,9 +70,9 @@ public:
     for (size_t q = 0; q < D3Q19::Q; ++q) {
       const double fi = pdfs[idx, q];
       density += fi;
-      momX += static_cast<double>(D3Q19::C[q][0]) * fi;
-      momY += static_cast<double>(D3Q19::C[q][1]) * fi;
-      momZ += static_cast<double>(D3Q19::C[q][2]) * fi;
+      momX += static_cast<double>(D3Q19::C.at(q)[0]) * fi;
+      momY += static_cast<double>(D3Q19::C.at(q)[1]) * fi;
+      momZ += static_cast<double>(D3Q19::C.at(q)[2]) * fi;
     }
 
     rho[idx] = density;
@@ -134,7 +134,7 @@ public:
 
     // Non-zero velocities (i=1..18): move to neighbor cell
     for (size_t q = 1; q < D3Q19::Q; ++q) {
-      const auto &ci = D3Q19::C[q];
+      const auto &ci = D3Q19::C.at(q);
       const auto neighbor = cell.neighbor({ci[0], ci[1], ci[2]});
       const size_t dstIdx{neighbor};
       pdfsDst[dstIdx, q] = pdfsSrc[srcIdx, q];
@@ -142,5 +142,4 @@ public:
   }
 };
 
-}  // namespace oktal::lbm
-
+} // namespace oktal::lbm
