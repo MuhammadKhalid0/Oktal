@@ -1,0 +1,11 @@
+
+#   Build Artifacts
+**/build
+
+#   VS Code Configuration
+**/.vscode
+
+#   CMake Presets
+**/CMakeUserPresets.json
+
+.cache/

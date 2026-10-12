@@ -1,0 +1,37 @@
+stages:
+  - test
+  - code-quality
+
+
+testsuite:
+  image: i10git.cs.fau.de:5005/advpt-student/ci-registry/build:ci-env
+  stage: test
+  variables:
+    CC: clang-19
+    CXX: clang++-19
+  before_script:
+    - >
+      cmake -S . -B build
+      -DCMAKE_BUILD_TYPE=Release
+  script:
+    - cd build
+    - cmake --build . -j
+    - ctest .
+
+
+clang-tidy:
+  image: i10git.cs.fau.de:5005/advpt-student/ci-registry/build:ci-env
+  stage: code-quality
+  needs: []
+  variables:
+    CC: clang-19
+    CXX: clang++-19
+    CLANG_TIDY: run-clang-tidy-19
+  before_script:
+    - >
+      cmake -S . -B build
+      -DCMAKE_BUILD_TYPE=Debug
+      -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+  script:
+    - cd build
+    - ${CLANG_TIDY} -p .
